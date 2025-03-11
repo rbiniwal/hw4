@@ -29,4 +29,6 @@ struct Node {
  */
 bool equalPaths(Node * root);
 
+bool mapNode(Node * root, int temp, int& len);
+
 #endif
