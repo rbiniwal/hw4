@@ -509,47 +509,44 @@ void BinarySearchTree<Key, Value>::insert(const std::pair<const Key, Value> &key
 * Recall: The writeup specifies that if a node has 2 children you
 * should swap with the predecessor and then remove.
 */
-template<typename Key, typename Value>
-void BinarySearchTree<Key, Value>::remove(const Key& key)
-{
-    // TODO
-    Node<Key, Value>* temp = this->internalFind(key);
-    if(temp == nullptr){
-      return;
-    }
-    Node<Key, Value>* c = nullptr;
-    if ((temp->getLeft() == nullptr) && (temp->getRight() == nullptr)){
-      c = nullptr;
-    }else if (temp->getRight() == nullptr){
-      c = temp->getLeft();
-    }else if (temp->getLeft() == nullptr){
-      c = temp->getRight();
-    }else{
-      Node<Key, Value>* p = predecessor(temp);
-      nodeSwap(temp, p);
-      temp = p;
-      if (temp->getLeft() != nullptr) {
-        c = temp->getLeft();
-      } else {
-        c = temp->getRight();
-      }
-    }
-    if (temp == root_){
-      root_ = c;
-    }
-    if (c != nullptr) {
-        c->setParent(temp->getParent());
-    }
 
-    if (temp->getParent() != nullptr) {
-        if (temp == temp->getParent()->getLeft()) {
-            temp->getParent()->setLeft(c);
+template<class Key, class Value>
+void BinarySearchTree<Key, Value>::remove(const Key& key) {
+    Node<Key, Value>* nodeToRemove = internalFind(key);
+    if (nodeToRemove == nullptr) {
+        return;
+    }
+    if (nodeToRemove->getLeft() != nullptr && nodeToRemove->getRight() != nullptr) {
+        Node<Key, Value>* pred = predecessor(nodeToRemove);
+        nodeSwap(nodeToRemove, pred);
+    }
+    Node<Key, Value>* child = (nodeToRemove->getLeft() != nullptr) ? nodeToRemove->getLeft() : nodeToRemove->getRight();
+    if (child == nullptr) {
+        if (nodeToRemove == root_) {
+            root_ = nullptr;
         } else {
-            temp->getParent()->setRight(c);
+            Node<Key, Value>* parent = nodeToRemove->getParent();
+            if (parent->getLeft() == nodeToRemove) {
+                parent->setLeft(nullptr);
+            } else {
+                parent->setRight(nullptr);
+            }
+        }
+    } else {
+        if (nodeToRemove == root_) {
+            root_ = child;
+            root_->setParent(nullptr); 
+        } else {
+            Node<Key, Value>* parent = nodeToRemove->getParent();
+            if (parent->getLeft() == nodeToRemove) {
+                parent->setLeft(child);
+            } else {
+                parent->setRight(child);
+            }
+            child->setParent(parent);
         }
     }
-
-    delete temp; 
+    delete nodeToRemove;
 }
 
 
