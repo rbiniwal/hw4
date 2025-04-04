@@ -152,11 +152,8 @@ void AVLTree<Key, Value>::insert(const std::pair<const Key, Value>& new_item) {
         BinarySearchTree<Key, Value>::root_ = new AVLNode<Key, Value>(new_item.first, new_item.second, nullptr);
         return;
     }
-
     AVLNode<Key, Value>* current = static_cast<AVLNode<Key, Value>*>(BinarySearchTree<Key, Value>::root_);
     AVLNode<Key, Value>* parent = nullptr;
-
-    // Find the correct insertion point
     while (current != nullptr) {
         parent = current;
         if (new_item.first < current->getKey()) {
@@ -164,22 +161,17 @@ void AVLTree<Key, Value>::insert(const std::pair<const Key, Value>& new_item) {
         } else if (new_item.first > current->getKey()) {
             current = current->getRight();
         } else {
-            // If key already exists, update the value
             current->setValue(new_item.second);
             return;
         }
     }
-
-    // Insert the new node
     AVLNode<Key, Value>* newNode = new AVLNode<Key, Value>(new_item.first, new_item.second, parent);
     if (new_item.first < parent->getKey()) {
         parent->setLeft(newNode);
     } else {
         parent->setRight(newNode);
     }
-
-    // Now update the balance of the parent node, and propagate upwards
-    balanceHelper(parent);  // Call balanceHelper to update the balance factors of the parent and all ancestors
+    balanceHelper(parent);
     rebalance(parent);
 }
 
@@ -194,41 +186,29 @@ void AVLTree<Key, Value>::rebalance(AVLNode<Key, Value>* node) {
     if (node == nullptr) {
         return;
     }
-
     int balance = node->getBalance();
-
-    // Left heavy subtree (balance < -1)
     if (balance < -1) {
-        // Left child is left-heavy (Zig-Zig)
         if (node->getLeft()->getBalance() < 0) {
-            rotateRight(node); // Perform a right rotation
+            rotateRight(node);
         }
-        // Left child is right-heavy (Zig-Zag)
         else {
-            rotateLeft(node->getLeft());  // Left rotation on left child
-            rotateRight(node);  // Right rotation on the node
+            rotateLeft(node->getLeft());
+            rotateRight(node);
         }
     }
-    // Right heavy subtree (balance > 1)
     else if (balance > 1) {
-        // Right child is right-heavy (Zag-Zag)
         if (node->getRight()->getBalance() > 0) {
-            rotateLeft(node); // Perform a left rotation
+            rotateLeft(node);
         }
-        // Right child is left-heavy (Zag-Zig)
         else {
-            rotateRight(node->getRight());  // Right rotation on right child
-            rotateLeft(node);  // Left rotation on the node
+            rotateRight(node->getRight());
+            rotateLeft(node);
         }
     }
-
-    // Update the balance factor of the node (after rotation)
-    balanceHelper(node);  // Ensure the balance factors are updated after rotation
-
-    // Recurse to the parent node (if any)
+    balanceHelper(node);
     AVLNode<Key, Value>* parent = node->getParent();
     if (parent != nullptr) {
-        rebalance(parent);  // Rebalance the parent node
+        rebalance(parent);
     }
 }
 
@@ -243,21 +223,13 @@ void AVLTree<Key, Value>::rebalance(AVLNode<Key, Value>* node) {
  */
 template<class Key, class Value>
 void AVLTree<Key, Value>::remove(const Key& key) {
-    // Step 1: Find the node to remove
     AVLNode<Key, Value>* nodeToRemove = static_cast<AVLNode<Key, Value>*>(BinarySearchTree<Key, Value>::internalFind(key));
-
     if (nodeToRemove == nullptr) {
-        // Node with the given key doesn't exist
         return;
     }
-
     AVLNode<Key, Value>* parent = nodeToRemove->getParent();
     AVLNode<Key, Value>* pred = static_cast<AVLNode<Key, Value>*>(BinarySearchTree<Key, Value>::predecessor(nodeToRemove));
-
-    // Step 2: Remove the node using BinarySearchTree's remove function
     BinarySearchTree<Key, Value>::remove(key);
-
-    // Step 3: Update the balance factor of the paren
     if (parent == nullptr){
       balanceHelper(pred);
       rebalance(pred);
@@ -265,7 +237,6 @@ void AVLTree<Key, Value>::remove(const Key& key) {
       balanceHelper(parent);
       rebalance(parent);
     }
-    // Step 6: If the root node was removed, set the root to nullptr
     if ((nodeToRemove == static_cast<AVLNode<Key, Value>*>(BinarySearchTree<Key, Value>::root_)) && (getHeight(nodeToRemove) == 0)) {
         BinarySearchTree<Key, Value>::root_ = nullptr;
     }
@@ -287,7 +258,7 @@ void AVLTree<Key, Value>::nodeSwap( AVLNode<Key,Value>* n1, AVLNode<Key,Value>* 
 
 template<class Key, class Value>
 void AVLTree<Key, Value>::rotateLeft(AVLNode<Key, Value>* node) {
-    if (node == nullptr || node->getRight() == nullptr) return; // Guard clause
+    if (node == nullptr || node->getRight() == nullptr) return;
 
     AVLNode<Key, Value>* rightChild = node->getRight();
     AVLNode<Key, Value>* leftOfRight = rightChild->getLeft();
@@ -310,7 +281,7 @@ void AVLTree<Key, Value>::rotateLeft(AVLNode<Key, Value>* node) {
     node->setParent(rightChild);
 
 
-    balanceHelper(node);  // Update balance factors
+    balanceHelper(node);
 }
 
 
@@ -318,7 +289,7 @@ void AVLTree<Key, Value>::rotateLeft(AVLNode<Key, Value>* node) {
 
 template<class Key, class Value>
 void AVLTree<Key, Value>::rotateRight(AVLNode<Key, Value>* node) {
-    if (node == nullptr || node->getLeft() == nullptr) return; // Guard clause
+    if (node == nullptr || node->getLeft() == nullptr) return;
 
     AVLNode<Key, Value>* leftChild = node->getLeft();
     AVLNode<Key, Value>* rightOfLeft = leftChild->getRight();
@@ -340,7 +311,7 @@ void AVLTree<Key, Value>::rotateRight(AVLNode<Key, Value>* node) {
     }
     node->setParent(leftChild);
 
-    balanceHelper(node);  // Update balance factors
+    balanceHelper(node);
 }
 
 
@@ -348,15 +319,10 @@ void AVLTree<Key, Value>::rotateRight(AVLNode<Key, Value>* node) {
 template<class Key, class Value>
 void AVLTree<Key, Value>::balanceHelper(AVLNode<Key, Value>* node) {
     while (node != nullptr) {
-        // Calculate the height of the left and right subtrees using the getHeight function
         int leftHeight = getHeight(node->getLeft());
         int rightHeight = getHeight(node->getRight());
-        
-        // Set the balance factor
         int balance = rightHeight - leftHeight;
         node->setBalance(balance);
-
-        // Move to the parent node for the next iteration
         node = node->getParent();
     }
 }
@@ -366,13 +332,12 @@ void AVLTree<Key, Value>::balanceHelper(AVLNode<Key, Value>* node) {
 template<class Key, class Value>
 int AVLTree<Key, Value>::getHeight(AVLNode<Key, Value>* node) {
     if (node == nullptr) {
-        return 0;  // Return 0 for a null node (empty subtree)
+        return 0;
     }
+    int leftHeight = getHeight(node->getLeft());
+    int rightHeight = getHeight(node->getRight());
 
-    int leftHeight = getHeight(node->getLeft());  // Recursively get the height of the left subtree
-    int rightHeight = getHeight(node->getRight());  // Recursively get the height of the right subtree
-
-    return std::max(leftHeight, rightHeight) + 1;  // The height is the max of left or right subtree heights, plus 1 for the current node
+    return std::max(leftHeight, rightHeight) + 1;
 }
 
 
